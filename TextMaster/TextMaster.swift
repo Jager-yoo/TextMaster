@@ -99,10 +99,6 @@ struct UITextViewRepresentable: UIViewRepresentable {
       self.maxHeight = maxHeight
     }
 
-    func textViewDidChangeSelection(_ textView: UITextView) {
-      self.text = textView.text ?? ""
-    }
-
     func textViewDidBeginEditing(_ textView: UITextView) {
       self.isFocused = true
     }
@@ -112,6 +108,8 @@ struct UITextViewRepresentable: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
+      self.text = textView.text ?? ""
+
       guard let spacing = textView.font?.lineHeight else { return } // 어떻게 사용할지 고민...
       print("spacing: \(spacing)")
 
