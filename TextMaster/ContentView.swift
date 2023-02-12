@@ -8,19 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
-        }
-        .padding()
+
+  @State private var text: String = ""
+
+  var body: some View {
+    ScrollView {
+      TextMaster(text: $text, minHeight: 30, maxHeight: 200, fontSize: 16)
     }
+  }
 }
 
+
+
 struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+  static var previews: some View {
+    ContentView()
+  }
 }
