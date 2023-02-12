@@ -12,8 +12,8 @@ struct ContentView: View {
   @State private var text: String = ""
 
   var body: some View {
-    ScrollView {
-      TextMaster(text: $text, minHeight: 30, maxHeight: 200, fontSize: 16)
+    VStack {
+      TextMaster(text: $text, minHeight: 40, maxHeight: 200, fontSize: 16)
     }
   }
 }

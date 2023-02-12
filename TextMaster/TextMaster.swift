@@ -57,7 +57,12 @@ struct UITextViewRepresentable: UIViewRepresentable {
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     textView.textContainer.lineFragmentPadding = .zero
     textView.textContainerInset = .zero
+    textView.isScrollEnabled = false
     return textView
+  }
+
+  func updateUIView(_ uiView: UITextView, context: UIViewRepresentableContext<UITextViewRepresentable>) {
+    uiView.text = self.text
   }
 
   func makeCoordinator() -> UITextViewRepresentable.Coordinator {
@@ -67,10 +72,6 @@ struct UITextViewRepresentable: UIViewRepresentable {
       dynamicHeight: $dynamicHeight,
       minHeight: minHeight,
       maxHeight: maxHeight)
-  }
-
-  func updateUIView(_ uiView: UITextView, context: UIViewRepresentableContext<UITextViewRepresentable>) {
-    uiView.text = self.text
   }
 
   final class Coordinator: NSObject, UITextViewDelegate {
@@ -111,7 +112,8 @@ struct UITextViewRepresentable: UIViewRepresentable {
     }
 
     func textViewDidChange(_ textView: UITextView) {
-      guard let spacing = textView.font?.lineHeight else { return }
+      guard let spacing = textView.font?.lineHeight else { return } // 어떻게 사용할지 고민...
+      print("spacing: \(spacing)")
 
       guard !text.isEmpty else {
         dynamicHeight = minHeight
@@ -121,7 +123,12 @@ struct UITextViewRepresentable: UIViewRepresentable {
       let newSize = textView.sizeThatFits(.init(width: textView.frame.width, height: .greatestFiniteMagnitude))
 
       guard newSize.height > minHeight, newSize.height < maxHeight else {
-        print("사이즈 잴 때 리턴당함 -> \(textView.text!)")
+        if newSize.height > maxHeight {
+          textView.isScrollEnabled = true
+          textView.flashScrollIndicators()
+        } else {
+          textView.isScrollEnabled = false
+        }
         return
       }
 
