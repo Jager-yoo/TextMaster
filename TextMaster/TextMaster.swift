@@ -18,20 +18,18 @@ struct TextMaster: View {
 
     let font = UIFont.systemFont(ofSize: fontSize)
     self.font = font
-    _dynamicHeight = State(initialValue: font.lineHeight * CGFloat(minLine))
+    _dynamicHeight = State(initialValue: font.lineHeight * CGFloat(minLine) + 16) // textContainerInset 디폴트 값은 top, bottom 으로 각각 패딩 8 씩 들어감
   }
 
   var body: some View {
-    VStack {
-      UITextViewRepresentable(
-        text: $text,
-        isFocused: $isFocused,
-        dynamicHeight: $dynamicHeight,
-        minLine: minLine,
-        maxLine: maxLine,
-        font: font)
-        .frame(height: dynamicHeight)
-    }
+    UITextViewRepresentable(
+      text: $text,
+      isFocused: $isFocused,
+      dynamicHeight: $dynamicHeight,
+      minLine: minLine,
+      maxLine: maxLine,
+      font: font)
+    .frame(height: dynamicHeight)
     .border(isFocused ? Color.blue : Color.gray, width: 1)
   }
 }
@@ -52,14 +50,15 @@ struct UITextViewRepresentable: UIViewRepresentable {
     textView.font = font
     textView.backgroundColor = .clear
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-    textView.textContainer.lineFragmentPadding = .zero
-    textView.textContainerInset = .zero
     textView.isScrollEnabled = false
     return textView
   }
 
   func updateUIView(_ uiView: UITextView, context: UIViewRepresentableContext<UITextViewRepresentable>) {
-    uiView.text = self.text
+    guard uiView.text == self.text else { // 외부에서 주입되는 텍스트에 대한 반응을 위해 필요
+      uiView.text = self.text
+      return
+    }
   }
 
   func makeCoordinator() -> UITextViewRepresentable.Coordinator {
@@ -67,9 +66,8 @@ struct UITextViewRepresentable: UIViewRepresentable {
       text: $text,
       isFocused: $isFocused,
       dynamicHeight: $dynamicHeight,
-      minHeight: font.lineHeight * CGFloat(minLine),
-      maxHeight: font.lineHeight * CGFloat(maxLine + 1),
-      fontLineHeight: font.lineHeight)
+      minHeight: font.lineHeight * CGFloat(minLine) + 16,
+      maxHeight: font.lineHeight * CGFloat(maxLine + (maxLine > minLine ? 1 : .zero)) + 16)
   }
 
   final class Coordinator: NSObject, UITextViewDelegate {
@@ -80,22 +78,19 @@ struct UITextViewRepresentable: UIViewRepresentable {
 
     let minHeight: CGFloat
     let maxHeight: CGFloat
-    let fontLineHeight: CGFloat
 
     init(
       text: Binding<String>,
       isFocused: Binding<Bool>,
       dynamicHeight: Binding<CGFloat>,
       minHeight: CGFloat,
-      maxHeight: CGFloat,
-      fontLineHeight: CGFloat)
+      maxHeight: CGFloat)
     {
       _text = text
       _isFocused = isFocused
       _dynamicHeight = dynamicHeight
       self.minHeight = minHeight
       self.maxHeight = maxHeight
-      self.fontLineHeight = fontLineHeight
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {

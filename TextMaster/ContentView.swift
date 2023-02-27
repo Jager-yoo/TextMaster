@@ -7,7 +7,7 @@ struct ContentView: View {
 
   var body: some View {
     VStack(spacing: 30) {
-      TextField("더미", text: $text)
+      TextField("연결된 더미", text: $text)
         .textFieldStyle(.roundedBorder)
 
       TextMaster(text: $text, isFocused: $isTextMasterFocused, minLine: 2, maxLine: 5, fontSize: 24)
@@ -16,11 +16,10 @@ struct ContentView: View {
         isTextMasterFocused = false
       }
       .buttonStyle(.bordered)
+      .disabled(!isTextMasterFocused)
     }
   }
 }
-
-
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
