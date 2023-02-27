@@ -1,10 +1,3 @@
-//
-//  TextMaster.swift
-//  TextMaster
-//
-//  Created by 유재호 on 2023/02/12.
-//
-
 import SwiftUI
 
 struct TextMaster: View {
@@ -15,17 +8,13 @@ struct TextMaster: View {
 
   let minLine: Int
   let maxLine: Int
-  let minHeight: CGFloat
-  let maxHeight: CGFloat
   let font: UIFont
 
-  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int, maxLine: Int, minHeight: CGFloat, maxHeight: CGFloat, fontSize: CGFloat) {
+  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int = 1, maxLine: Int, fontSize: CGFloat) {
     _text = text
     _isFocused = isFocused
     self.minLine = minLine
     self.maxLine = maxLine
-    self.minHeight = minHeight
-    self.maxHeight = maxHeight
 
     let font = UIFont.systemFont(ofSize: fontSize)
     self.font = font
@@ -40,8 +29,6 @@ struct TextMaster: View {
         dynamicHeight: $dynamicHeight,
         minLine: minLine,
         maxLine: maxLine,
-        minHeight: minHeight,
-        maxHeight: maxHeight,
         font: font)
         .frame(height: dynamicHeight)
     }
@@ -57,14 +44,13 @@ struct UITextViewRepresentable: UIViewRepresentable {
 
   let minLine: Int
   let maxLine: Int
-  let minHeight: CGFloat
-  let maxHeight: CGFloat
   let font: UIFont
 
   func makeUIView(context: UIViewRepresentableContext<UITextViewRepresentable>) -> UITextView {
     let textView = UITextView(frame: .zero)
     textView.delegate = context.coordinator
     textView.font = font
+    textView.backgroundColor = .clear
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     textView.textContainer.lineFragmentPadding = .zero
     textView.textContainerInset = .zero
@@ -82,7 +68,7 @@ struct UITextViewRepresentable: UIViewRepresentable {
       isFocused: $isFocused,
       dynamicHeight: $dynamicHeight,
       minHeight: font.lineHeight * CGFloat(minLine),
-      maxHeight: font.lineHeight * CGFloat(maxLine),
+      maxHeight: font.lineHeight * CGFloat(maxLine + 1),
       fontLineHeight: font.lineHeight)
   }
 
@@ -113,11 +99,11 @@ struct UITextViewRepresentable: UIViewRepresentable {
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {
-      self.isFocused = true
+      isFocused = true
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
-      self.isFocused = false
+      isFocused = false
     }
 
     func textViewDidChange(_ textView: UITextView) {
@@ -140,15 +126,13 @@ struct UITextViewRepresentable: UIViewRepresentable {
         return
       }
 
-      DispatchQueue.main.async { [weak self] in // call in next render cycle
-        self?.dynamicHeight = newSize.height
-      }
+      dynamicHeight = newSize.height // 텍스트뷰의 동적 높이 조절
     }
   }
 }
 
 struct TextMaster_Previews: PreviewProvider {
   static var previews: some View {
-    TextMaster(text: .constant("안녕하세요!"), isFocused: .constant(true), minLine: 1, maxLine: 5, minHeight: 40, maxHeight: 200, fontSize: 16)
+    TextMaster(text: .constant("안녕하세요!"), isFocused: .constant(true), minLine: 1, maxLine: 3, fontSize: 16)
   }
 }
