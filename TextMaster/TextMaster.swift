@@ -10,19 +10,26 @@ import SwiftUI
 struct TextMaster: View {
 
   @Binding var text: String
-  @State private var isFocused: Bool = false
+  @Binding var isFocused: Bool
   @State private var dynamicHeight: CGFloat
 
+  let minLine: Int
+  let maxLine: Int
   let minHeight: CGFloat
   let maxHeight: CGFloat
-  let fontSize: CGFloat
+  let font: UIFont
 
-  init(text: Binding<String>, minHeight: CGFloat, maxHeight: CGFloat, fontSize: CGFloat) {
+  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int, maxLine: Int, minHeight: CGFloat, maxHeight: CGFloat, fontSize: CGFloat) {
     _text = text
+    _isFocused = isFocused
+    self.minLine = minLine
+    self.maxLine = maxLine
     self.minHeight = minHeight
     self.maxHeight = maxHeight
-    self.fontSize = fontSize
-    _dynamicHeight = State(initialValue: minHeight)
+
+    let font = UIFont.systemFont(ofSize: fontSize)
+    self.font = font
+    _dynamicHeight = State(initialValue: font.lineHeight * CGFloat(minLine))
   }
 
   var body: some View {
@@ -31,9 +38,11 @@ struct TextMaster: View {
         text: $text,
         isFocused: $isFocused,
         dynamicHeight: $dynamicHeight,
+        minLine: minLine,
+        maxLine: maxLine,
         minHeight: minHeight,
         maxHeight: maxHeight,
-        fontSize: fontSize)
+        font: font)
         .frame(height: dynamicHeight)
     }
     .border(isFocused ? Color.blue : Color.gray, width: 1)
@@ -46,14 +55,16 @@ struct UITextViewRepresentable: UIViewRepresentable {
   @Binding var isFocused: Bool
   @Binding var dynamicHeight: CGFloat
 
+  let minLine: Int
+  let maxLine: Int
   let minHeight: CGFloat
   let maxHeight: CGFloat
-  let fontSize: CGFloat
+  let font: UIFont
 
   func makeUIView(context: UIViewRepresentableContext<UITextViewRepresentable>) -> UITextView {
     let textView = UITextView(frame: .zero)
     textView.delegate = context.coordinator
-    textView.font = .systemFont(ofSize: fontSize)
+    textView.font = font
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     textView.textContainer.lineFragmentPadding = .zero
     textView.textContainerInset = .zero
@@ -70,8 +81,9 @@ struct UITextViewRepresentable: UIViewRepresentable {
       text: $text,
       isFocused: $isFocused,
       dynamicHeight: $dynamicHeight,
-      minHeight: minHeight,
-      maxHeight: maxHeight)
+      minHeight: font.lineHeight * CGFloat(minLine),
+      maxHeight: font.lineHeight * CGFloat(maxLine),
+      fontLineHeight: font.lineHeight)
   }
 
   final class Coordinator: NSObject, UITextViewDelegate {
@@ -82,21 +94,22 @@ struct UITextViewRepresentable: UIViewRepresentable {
 
     let minHeight: CGFloat
     let maxHeight: CGFloat
-
-//    private let lineHeight: CGFloat
+    let fontLineHeight: CGFloat
 
     init(
       text: Binding<String>,
       isFocused: Binding<Bool>,
       dynamicHeight: Binding<CGFloat>,
       minHeight: CGFloat,
-      maxHeight: CGFloat)
+      maxHeight: CGFloat,
+      fontLineHeight: CGFloat)
     {
       _text = text
       _isFocused = isFocused
       _dynamicHeight = dynamicHeight
       self.minHeight = minHeight
       self.maxHeight = maxHeight
+      self.fontLineHeight = fontLineHeight
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {
@@ -109,9 +122,6 @@ struct UITextViewRepresentable: UIViewRepresentable {
 
     func textViewDidChange(_ textView: UITextView) {
       self.text = textView.text ?? ""
-
-      guard let spacing = textView.font?.lineHeight else { return } // 어떻게 사용할지 고민...
-      print("spacing: \(spacing)")
 
       guard !text.isEmpty else {
         dynamicHeight = minHeight
@@ -133,24 +143,12 @@ struct UITextViewRepresentable: UIViewRepresentable {
       DispatchQueue.main.async { [weak self] in // call in next render cycle
         self?.dynamicHeight = newSize.height
       }
-
-//      guard let spacing = textView.font?.lineHeight else {
-//        print("리턴당함")
-//        return
-//      }
-//
-//      if textView.contentSize.height > dynamicHeight, dynamicHeight <= maxHeight - spacing {
-//        dynamicHeight += spacing
-//        print("🥕 spacing: \(spacing)", "dynamic: \(dynamicHeight)")
-//      } else if text.isEmpty {
-//        dynamicHeight = minHeight
-//      }
     }
   }
 }
 
 struct TextMaster_Previews: PreviewProvider {
   static var previews: some View {
-    TextMaster(text: .constant("안녕하세요!"), minHeight: 40, maxHeight: 200, fontSize: 16)
+    TextMaster(text: .constant("안녕하세요!"), isFocused: .constant(true), minLine: 1, maxLine: 5, minHeight: 40, maxHeight: 200, fontSize: 16)
   }
 }
