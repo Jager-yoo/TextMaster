@@ -55,6 +55,7 @@ fileprivate struct UITextViewRepresentable: UIViewRepresentable {
     textView.backgroundColor = .clear
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     textView.isScrollEnabled = false
+    textView.bounces = false
 
     if becomeFirstResponder {
       textView.becomeFirstResponder()
