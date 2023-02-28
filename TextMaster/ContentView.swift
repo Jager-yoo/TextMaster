@@ -10,7 +10,7 @@ struct ContentView: View {
       TextField("연결된 더미", text: $text)
         .textFieldStyle(.roundedBorder)
 
-      TextMaster(text: $text, isFocused: $isTextMasterFocused, minLine: 2, maxLine: 5, fontSize: 24)
+      TextMaster(text: $text, isFocused: $isTextMasterFocused, minLine: 1, maxLine: 5, fontSize: 24, becomeFirstResponder: true)
 
       Button("포커스 빼기") {
         isTextMasterFocused = false

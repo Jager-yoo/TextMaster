@@ -9,12 +9,14 @@ struct TextMaster: View {
   let minLine: Int
   let maxLine: Int
   let font: UIFont
+  let becomeFirstResponder: Bool
 
-  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int = 1, maxLine: Int, fontSize: CGFloat) {
+  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int = 1, maxLine: Int, fontSize: CGFloat, becomeFirstResponder: Bool = false) {
     _text = text
     _isFocused = isFocused
     self.minLine = minLine
     self.maxLine = maxLine
+    self.becomeFirstResponder = becomeFirstResponder
 
     let font = UIFont.systemFont(ofSize: fontSize)
     self.font = font
@@ -28,13 +30,14 @@ struct TextMaster: View {
       dynamicHeight: $dynamicHeight,
       minLine: minLine,
       maxLine: maxLine,
-      font: font)
+      font: font,
+      becomeFirstResponder: becomeFirstResponder)
     .frame(height: dynamicHeight)
     .border(isFocused ? Color.blue : Color.gray, width: 1)
   }
 }
 
-struct UITextViewRepresentable: UIViewRepresentable {
+fileprivate struct UITextViewRepresentable: UIViewRepresentable {
 
   @Binding var text: String
   @Binding var isFocused: Bool
@@ -43,6 +46,7 @@ struct UITextViewRepresentable: UIViewRepresentable {
   let minLine: Int
   let maxLine: Int
   let font: UIFont
+  let becomeFirstResponder: Bool
 
   func makeUIView(context: UIViewRepresentableContext<UITextViewRepresentable>) -> UITextView {
     let textView = UITextView(frame: .zero)
@@ -51,6 +55,11 @@ struct UITextViewRepresentable: UIViewRepresentable {
     textView.backgroundColor = .clear
     textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
     textView.isScrollEnabled = false
+
+    if becomeFirstResponder {
+      textView.becomeFirstResponder()
+    }
+
     return textView
   }
 
@@ -104,23 +113,28 @@ struct UITextViewRepresentable: UIViewRepresentable {
     func textViewDidChange(_ textView: UITextView) {
       self.text = textView.text ?? ""
 
-      guard !text.isEmpty else {
+      if text.isEmpty {
         dynamicHeight = minHeight
+        textView.isScrollEnabled = false
         return
       }
 
       let newSize = textView.sizeThatFits(.init(width: textView.frame.width, height: .greatestFiniteMagnitude))
 
-      guard newSize.height > minHeight, newSize.height < maxHeight else {
-        if newSize.height > maxHeight {
-          textView.isScrollEnabled = true
-          textView.flashScrollIndicators()
-        } else {
-          textView.isScrollEnabled = false
-        }
-        return
+      print("\n🔽최대 높이 -> \(maxHeight)")
+      print("❤️NEW SIZE -> \(newSize.height) / lineHeight -> \(textView.font!.lineHeight)")
+      print("🔼최소 높이 -> \(minHeight)")
+
+      if newSize.height < maxHeight, textView.isScrollEnabled { // 최대 높이 미만으로 줄어들면서, 스크롤이 true 라면...
+        textView.isScrollEnabled = false
+        print("📜 스크롤 뷰 꺼짐!")
+      } else if newSize.height > maxHeight, !textView.isScrollEnabled { // 최대 높이 초과로 커지면서, 스크롤이 false 라면...
+        textView.isScrollEnabled = true
+        textView.flashScrollIndicators()
+        print("🦋 스크롤 뷰 켜짐!")
       }
 
+      guard newSize.height > minHeight, newSize.height < maxHeight else { return }
       dynamicHeight = newSize.height // 텍스트뷰의 동적 높이 조절
     }
   }
