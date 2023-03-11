@@ -3,8 +3,9 @@ import SwiftUI
 struct ContentView: View {
 
   @State private var text: String = ""
-  @State private var isTextMasterFocused: Bool = false
+  @FocusState private var isTextMasterFocused: Bool
 
+  // MARK: 파라미터 조절
   private let minLine: Int = 1
   private let maxLine: Int = 5
   private let fontSize: Double = 24
@@ -13,7 +14,7 @@ struct ContentView: View {
     VStack(spacing: 30) {
       VStack(alignment: .leading) {
         Text("TextMaster 파라미터 값")
-          .font(.title)
+          .font(.title.bold())
         Text("- 최소 라인수: \(minLine)")
         Text("- 최대 라인수: \(maxLine)")
         Text("- 폰트 사이즈: \(String(format: "%.1f", fontSize))")
@@ -24,7 +25,7 @@ struct ContentView: View {
           .fill(.yellow.opacity(0.2))
       )
 
-      TextField("연결된 더미", text: $text)
+      TextField("연결된 텍스트 필드", text: $text)
         .textFieldStyle(.roundedBorder)
 
       TextMaster(
@@ -35,10 +36,14 @@ struct ContentView: View {
         fontSize: fontSize,
         becomeFirstResponder: true)
 
-      Button("포커스 빼기") {
-        isTextMasterFocused = false
+      HStack {
+        Button("FOCUS IN", action: { isTextMasterFocused = true })
+          .disabled(isTextMasterFocused)
+
+        Button("FOCUS OUT", action: { isTextMasterFocused = false })
+          .disabled(!isTextMasterFocused)
       }
-      .disabled(!isTextMasterFocused)
+      .buttonStyle(.borderedProminent)
     }
   }
 }

@@ -3,17 +3,24 @@ import SwiftUI
 struct TextMaster: View {
 
   @Binding var text: String
-  @Binding var isFocused: Bool
   @State private var dynamicHeight: CGFloat
 
+  let isFocused: FocusState<Bool>.Binding
   let minLine: Int
   let maxLine: Int
   let font: UIFont
   let becomeFirstResponder: Bool
 
-  init(text: Binding<String>, isFocused: Binding<Bool>, minLine: Int = 1, maxLine: Int, fontSize: CGFloat, becomeFirstResponder: Bool = false) {
+  init(
+    text: Binding<String>,
+    isFocused: FocusState<Bool>.Binding,
+    minLine: Int = 1,
+    maxLine: Int,
+    fontSize: CGFloat,
+    becomeFirstResponder: Bool = false)
+  {
     _text = text
-    _isFocused = isFocused
+    self.isFocused = isFocused
     self.minLine = minLine
     self.maxLine = maxLine
     self.becomeFirstResponder = becomeFirstResponder
@@ -26,23 +33,24 @@ struct TextMaster: View {
   var body: some View {
     UITextViewRepresentable(
       text: $text,
-      isFocused: $isFocused,
       dynamicHeight: $dynamicHeight,
+      isFocused: isFocused,
       minLine: minLine,
       maxLine: maxLine,
       font: font,
       becomeFirstResponder: becomeFirstResponder)
     .frame(height: dynamicHeight)
-    .border(isFocused ? Color.blue : Color.gray, width: 1)
+    .focused(isFocused)
+    .border(isFocused.wrappedValue ? Color.blue : Color.gray, width: 1)
   }
 }
 
 fileprivate struct UITextViewRepresentable: UIViewRepresentable {
 
   @Binding var text: String
-  @Binding var isFocused: Bool
   @Binding var dynamicHeight: CGFloat
 
+  let isFocused: FocusState<Bool>.Binding
   let minLine: Int
   let maxLine: Int
   let font: UIFont
@@ -74,7 +82,7 @@ fileprivate struct UITextViewRepresentable: UIViewRepresentable {
   func makeCoordinator() -> UITextViewRepresentable.Coordinator {
     Coordinator(
       text: $text,
-      isFocused: $isFocused,
+      isFocused: isFocused,
       dynamicHeight: $dynamicHeight,
       minHeight: font.lineHeight * CGFloat(minLine) + 16,
       maxHeight: font.lineHeight * CGFloat(maxLine + (maxLine > minLine ? 1 : .zero)) + 16)
@@ -83,32 +91,32 @@ fileprivate struct UITextViewRepresentable: UIViewRepresentable {
   final class Coordinator: NSObject, UITextViewDelegate {
 
     @Binding var text: String
-    @Binding var isFocused: Bool
     @Binding var dynamicHeight: CGFloat
 
+    let isFocused: FocusState<Bool>.Binding
     let minHeight: CGFloat
     let maxHeight: CGFloat
 
     init(
       text: Binding<String>,
-      isFocused: Binding<Bool>,
+      isFocused: FocusState<Bool>.Binding,
       dynamicHeight: Binding<CGFloat>,
       minHeight: CGFloat,
       maxHeight: CGFloat)
     {
       _text = text
-      _isFocused = isFocused
+      self.isFocused = isFocused
       _dynamicHeight = dynamicHeight
       self.minHeight = minHeight
       self.maxHeight = maxHeight
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {
-      isFocused = true
+      isFocused.wrappedValue = true
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
-      isFocused = false
+      isFocused.wrappedValue = false
     }
 
     func textViewDidChange(_ textView: UITextView) {
@@ -138,11 +146,5 @@ fileprivate struct UITextViewRepresentable: UIViewRepresentable {
       guard newSize.height > minHeight, newSize.height < maxHeight else { return }
       dynamicHeight = newSize.height // 텍스트뷰의 동적 높이 조절
     }
-  }
-}
-
-struct TextMaster_Previews: PreviewProvider {
-  static var previews: some View {
-    TextMaster(text: .constant("안녕하세요!"), isFocused: .constant(true), minLine: 1, maxLine: 3, fontSize: 16)
   }
 }
