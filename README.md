@@ -48,7 +48,7 @@ TextMaster(
   text: $text, // @State 텍스트와 바인딩
   isFocused: $isTextMasterFocused, // @FocusState 와 바인딩
   minLine: 1, // 최소 1줄 (디폴트)
-  maxLine: 5, // 최대 5줄 (그 이후로 늘어나면 스크롤 기능이 작동)
+  maxLine: 5, // 최대 5줄 (라인이 더 늘어나면 스크롤 기능이 작동)
   fontSize: 24, // 폰트 사이즈 (Double 타입)
   becomeFirstResponder: true) // true 가 들어가면, 이 페이지가 나타날 때 자동으로 포커스가 잡히며 키보드 올라옴
 ```
@@ -70,8 +70,35 @@ TextMaster(
   minLine: 2,
   maxLine: 5,
   fontSize: 16)
-  .background(.tertiary)
+  .background(.quaternary)
 ```
 
 ![TextMaster2](https://user-images.githubusercontent.com/71127966/224528938-983cea8b-83a7-4260-a342-21d35790806a.gif)
 
+<br>
+
+이런 스펙은 어떨까요?
+
+> "3줄 까지만 입력 가능하도록 고정시켜 주세요. 그 이상에선 스크롤이 작동해야 합니다."
+
+```swift
+TextMaster(
+  text: $text,
+  isFocused: $isTextMasterFocused,
+  minLine: 3,
+  maxLine: 3,
+  fontSize: 16)
+```
+
+![TextMaster3](https://user-images.githubusercontent.com/71127966/224557873-cd7d01a4-094a-44b5-86ec-4c7295e84609.gif)
+
+<br>
+
+위와 같이, `TextMaster`는 SwiftUI 의 [TextEditor](https://developer.apple.com/documentation/swiftui/texteditor) API 의 한계를 벗어나고
+
+실무에서 요구 받는 TextView 스펙을 쉽게 맞추기 위해 만들어졌습니다.
+
+혹시나 더 추가를 원하는 기능이나 파라미터가 있다면, [Issues](https://github.com/Jager-yoo/TextMaster/issues)에 제안해주세요. 감사합니다! 😄
+
+- last edited: 2023-03-13(월)
+- author: [현대자동차 유재호 연구원](https://github.com/Jager-yoo)
